@@ -14,7 +14,7 @@ npm-debug.log
 .classpath
 
 # React Native (specific)
-/mobile-app/android/build/
-/mobile-app/android/app/build/
-/mobile-app/android/.gradle/
-/mobile-app/ios/build/
+/mobileapp/android/build/
+/mobileapp/android/app/build/
+/mobileapp/android/.gradle/
+/mobileapp/ios/build/

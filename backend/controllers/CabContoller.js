@@ -1,5 +1,6 @@
 
 const Cab = require('../models/Cab');
+const { parse } = require('js2xmlparser');
 
 exports.addCab = async (req, res) => {
   try {
@@ -31,41 +32,72 @@ exports.addCab = async (req, res) => {
   }
 };
 
+
 exports.findAvailableCabs = async (req, res) => {
   try {
-
     const { lat, lng } = req.query;
 
     if (!lat || !lng) {
-      return res.status(400).json({ message: 'Latitude (lat) and longitude (lng) are required query parameters' });
+      return res.status(400).json({ message: 'Latitude (lat) and longitude (lng) are required' });
     }
-
+    
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lng);
-
     const maxDistanceInMeters = 5000;
 
     const availableCabs = await Cab.find({
       isAvailable: true,
       currentLocation: {
         $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude] 
-          },
+          $geometry: { type: 'Point', coordinates: [longitude, latitude] },
           $maxDistance: maxDistanceInMeters
         }
       }
     });
 
     if (availableCabs.length === 0) {
+      // If no cabs, just send an empty list for XML
+      if (req.headers.accept && req.headers.accept.includes('application/xml')) {
+        const emptyXml = parse('cabs', { cab: [] }); // Send <cabs></cabs>
+        res.type('application/xml');
+        return res.status(200).send(emptyXml);
+      }
+      
+      // Otherwise, send 404 for JSON
       return res.status(404).json({ message: 'No available cabs found within 5km' });
     }
 
-    res.status(200).json(availableCabs);
+    // --- LOGIC TO RESPOND WITH XML OR JSON ---
+    const clientAccepts = req.headers.accept;
+
+    if (clientAccepts && clientAccepts.includes('application/xml')) {
+      // Client wants XML
+
+      // --- THIS IS THE FIX ---
+      // We manually build a plain object and call .toString() on the _id
+      const plainCabs = availableCabs.map(cab => ({
+        _id: cab._id.toString(), // <-- Explicitly converts ObjectId to a string
+        driverName: cab.driverName,
+        cabModel: cab.cabModel,
+        licensePlate: cab.licensePlate,
+        isAvailable: cab.isAvailable,
+        currentLocation: cab.currentLocation // This object is fine
+      }));
+      // --- END OF FIX ---
+
+      // This call matches your JAXB model Cabs.java
+      const xmlResponse = parse('cabs', { cab: plainCabs }); 
+
+      res.type('application/xml');
+      res.status(200).send(xmlResponse);
+
+    } else {
+      // Client wants JSON (or default)
+      res.status(200).json(availableCabs);
+    }
 
   } catch (err) {
-    console.error(err.message);
+    console.error(err.message); // This will log the error to your Node terminal
     res.status(500).send('Server Error');
   }
 };
