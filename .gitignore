@@ -1,0 +1,20 @@
+# General
+.DS_Store
+.vscode/
+.idea/
+*.log
+
+# Node.js (for both backend and mobile-app)
+**/node_modules/
+npm-debug.log
+
+# Java (Maven)
+**/target/
+.project
+.classpath
+
+# React Native (specific)
+/mobile-app/android/build/
+/mobile-app/android/app/build/
+/mobile-app/android/.gradle/
+/mobile-app/ios/build/
