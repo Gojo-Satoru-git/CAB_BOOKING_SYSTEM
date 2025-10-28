@@ -27,10 +27,12 @@ public class Cab {
     // A 'toString' method to print the cab details nicely
     @Override
     public String toString() {
-        return "Cab [id=" + _id + ", driver=" + driverName + ", model=" + cabModel + "]";
+        // This is the text that will appear in the ListView
+        return driverName + " (" + cabModel + " - " + licensePlate + ")";
     }
     
     // --- Getters for the data we need ---
     public String getId() { return _id; }
     public String getDriverName() { return driverName; }
+    
 }

@@ -2,6 +2,7 @@
 const Booking = require('../models/Booking');
 const Cab = require('../models/Cab');
 const User = require('../models/User');
+const { parse } = require('js2xmlparser');
 
 
 exports.createBooking = async (req, res) => {
@@ -48,9 +49,34 @@ exports.viewAllBookings = async (req, res) => {
     try {
         const bookings = await Booking.find()
             .populate('userId', 'name email') 
-            .populate('cabId', 'driverName cabModel licensePlate'); 
+            .populate('cabId', 'driverName cabModel licensePlate');
 
-        res.status(200).json(bookings);
+        // --- ADD BILINGUAL RESPONSE LOGIC ---
+        const clientAccepts = req.headers.accept;
+
+        if (clientAccepts && clientAccepts.includes('application/xml')) {
+            // Client wants XML
+            // We must convert the Mongoose docs to plain objects
+            const plainBookings = bookings.map(booking => {
+                const b = booking.toObject();
+                // Manually stringify IDs for XML
+                return {
+                    ...b,
+                    _id: b._id.toString(),
+                    userId: b.userId ? { ...b.userId, _id: b.userId._id.toString() } : "N/A",
+                    cabId: b.cabId ? { ...b.cabId, _id: b.cabId._id.toString() } : "N/A"
+                };
+            });
+            
+            // 'booking' = tag for each item, 'bookings' = root tag
+            const xmlResponse = parse('bookings', { booking: plainBookings }); 
+            res.type('application/xml');
+            res.status(200).send(xmlResponse);
+        } else {
+            // Client wants JSON (or default)
+            res.status(200).json(bookings);
+        }
+        // --- END OF NEW LOGIC ---
         
     } catch (err) {
         console.error(err.message);

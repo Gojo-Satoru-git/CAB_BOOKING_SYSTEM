@@ -36,4 +36,9 @@ public class Booking {
     @XmlElement
     public String getDropLocation() { return dropLocation; }
     public void setDropLocation(String dropLocation) { this.dropLocation = dropLocation; }
+    @Override
+    public String toString() {
+        // This is the text that will appear in the ListView
+        return "User: " + userId + " | From: " + pickupLocation + " | To: " + dropLocation;
+    }
 }

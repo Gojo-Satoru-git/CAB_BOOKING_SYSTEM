@@ -1,21 +1,21 @@
-
-const mongoose = require('mongoose')
+// models/Cab.js
+const mongoose = require('mongoose');
 
 const cabSchema = new mongoose.Schema({
-    driverName:{
-        type:String,
-        required:true,
-    },
-    cabModel:{
-        type:String,
-        required:true
-    },
-    licensePlate:{
-        type:String,
-        required:true,
-        unique:true
-    },
-    currentLocation: {
+  driverName: {
+    type: String,
+    required: true,
+  },
+  cabModel: {
+    type: String,
+    required: true
+  },
+  licensePlate: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  currentLocation: {
     type: {
       type: String,
       enum: ['Point'],
@@ -23,16 +23,24 @@ const cabSchema = new mongoose.Schema({
       default: 'Point'
     },
     coordinates: {
-      type: [Number], 
+      type: [Number],
       required: true
     }
-    },
-    isAvailable:{
-        type:Boolean,
-        default:true
-    }
+  },
+  
+  // --- ADD THIS NEW FIELD ---
+  locationName: {
+    type: String,
+    default: ''
+  },
+  // --- END OF ADDITION ---
 
+  isAvailable: {
+    type: Boolean,
+    default: true
+  }
 });
+
 cabSchema.index({ currentLocation: '2dsphere' });
 
-module.exports = mongoose.model('Cab',cabSchema);
+module.exports = mongoose.model('Cab', cabSchema);

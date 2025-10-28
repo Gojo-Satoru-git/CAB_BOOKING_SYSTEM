@@ -6,5 +6,6 @@ const cabController = require('../controllers/CabContoller');
 router.post('/', cabController.addCab);
 router.get('/search', cabController.findAvailableCabs);
 router.patch('/:id/location',cabController.updateCabLocation);
+router.get('/search-by-name', cabController.findCabsByName);
 
 module.exports = router;

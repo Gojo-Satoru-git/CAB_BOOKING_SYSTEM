@@ -4,7 +4,9 @@ const { parse } = require('js2xmlparser');
 
 exports.addCab = async (req, res) => {
   try {
-    const { driverName, cabModel, licensePlate, latitude, longitude } = req.body;
+    // --- ADD 'locationName' to this list ---
+    const { driverName, cabModel, licensePlate, latitude, longitude, locationName } = req.body;
+
     if (latitude === undefined || longitude === undefined) {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
     }
@@ -15,8 +17,9 @@ exports.addCab = async (req, res) => {
       licensePlate,
       currentLocation: {
         type: 'Point',
-        coordinates: [longitude, latitude] 
+        coordinates: [longitude, latitude]
       },
+      locationName: locationName, // <-- ADD THIS
       isAvailable: true
     });
 
@@ -24,9 +27,7 @@ exports.addCab = async (req, res) => {
     res.status(201).json(cab);
 
   } catch (err) {
-    if (err.code === 11000) {
-        return res.status(400).json({ message: 'License plate already exists' });
-    }
+    // ... (rest of your error handling) ...
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -126,6 +127,59 @@ exports.updateCabLocation = async (req, res) => {
     const updatedCab = await cab.save();
 
     res.status(200).json(updatedCab);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+const axios = require('axios'); // <-- ADD THIS
+
+exports.findCabsByName = async (req, res) => {
+  try {
+    const { location } = req.query;
+
+    if (!location) {
+      return res.status(400).json({ message: 'Location query is required' });
+    }
+
+    // --- THIS IS THE FIX ---
+    // We now search on 'locationName' instead of 'currentLocation'
+    const availableCabs = await Cab.find({
+      locationName: { $regex: location, $options: 'i' }, // <-- FIXED
+      isAvailable: true
+    });
+    // --- END OF FIX ---
+
+    if (availableCabs.length === 0) {
+      if (req.headers.accept && req.headers.accept.includes('application/xml')) {
+        const emptyXml = parse('cabs', { cab: [] });
+        res.type('application/xml');
+        return res.status(200).send(emptyXml);
+      }
+      return res.status(404).json({ message: 'No available cabs found' });
+    }
+
+    // --- Respond with XML or JSON (this part is correct) ---
+    const clientAccepts = req.headers.accept;
+
+    if (clientAccepts && clientAccepts.includes('application/xml')) {
+      const plainCabs = availableCabs.map(cab => ({
+        _id: cab._id.toString(),
+        driverName: cab.driverName,
+        cabModel: cab.cabModel,
+        licensePlate: cab.licensePlate,
+        isAvailable: cab.isAvailable,
+        locationName: cab.locationName // <-- Also include this in the response
+      }));
+      
+      const xmlResponse = parse('cabs', { cab: plainCabs });
+      res.type('application/xml');
+      res.status(200).send(xmlResponse);
+    } else {
+      res.status(200).json(availableCabs);
+    }
 
   } catch (err) {
     console.error(err.message);
