@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 class Coordinates {
     public String lat;
     public String lon;
@@ -28,7 +29,6 @@ class Coordinates {
 
 public class CabApiClient {
 
-    
     // --- Method 1: Search for Cabs ---
     // --- Method 1: Search for Cabs (Corrected) ---
     public List<Cab> searchForCabs(String lat, String lng) throws Exception {
@@ -63,10 +63,10 @@ public class CabApiClient {
     }
 
     // --- Method 2: Create a Booking ---
-// --- Method 2: Create a Booking ---
+    // --- Method 2: Create a Booking ---
     // ADD 'String destination' to the parameters here
     public Booking createBooking(String userId, String cabId, String destination) throws Exception {
-        
+
         // UPDATE this line to print the destination
         System.out.println("\n--- Proceeding to book cab: " + cabId + " to " + destination + " ---");
 
@@ -167,5 +167,150 @@ public class CabApiClient {
         }
 
         return cabList.getCabs();
+    }
+
+    // --- New: Fetch bookings by user ---
+    public List<Booking> viewBookingsByUser(String userId) throws Exception {
+        String urlString = "http://localhost:3000/api/bookings/user/"
+                + URLEncoder.encode(userId, StandardCharsets.UTF_8.name());
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/xml");
+
+        if (conn.getResponseCode() != 200) {
+            return Collections.emptyList();
+        }
+
+        JAXBContext context = JAXBContext.newInstance(Bookings.class);
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+        Bookings history = (Bookings) unmarshaller.unmarshal(conn.getInputStream());
+        if (history.getBookings() == null)
+            return Collections.emptyList();
+        return history.getBookings();
+    }
+
+    // --- New: Cancel booking ---
+    public boolean cancelBooking(String bookingId) throws Exception {
+        String urlString = "http://localhost:3000/api/bookings/"
+                + URLEncoder.encode(bookingId, StandardCharsets.UTF_8.name()) + "/cancel";
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+        return conn.getResponseCode() == 200;
+    }
+
+    // --- New: Complete booking ---
+    public boolean completeBooking(String bookingId) throws Exception {
+        String urlString = "http://localhost:3000/api/bookings/"
+                + URLEncoder.encode(bookingId, StandardCharsets.UTF_8.name()) + "/complete";
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+        return conn.getResponseCode() == 200;
+    }
+
+    // --- Auth: Register ---
+    public JSONObject register(String name, String email, String password, String role) throws Exception {
+        URL url = new URL("http://localhost:3000/api/users/register");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+
+        JSONObject payload = new JSONObject();
+        payload.put("name", name);
+        payload.put("email", email);
+        payload.put("password", password);
+        if (role != null)
+            payload.put("role", role);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        if (conn.getResponseCode() != 201) {
+            return null;
+        }
+
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null)
+            sb.append(line);
+        return new JSONObject(sb.toString());
+    }
+
+    // Overload that accepts a pre-built JSON payload (e.g., with cab details)
+    public JSONObject registerWithPayload(JSONObject payload) throws Exception {
+        URL url = new URL("http://localhost:3000/api/users/register");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+        }
+        if (conn.getResponseCode() != 201) {
+            return null;
+        }
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null)
+            sb.append(line);
+        return new JSONObject(sb.toString());
+    }
+
+    // --- Auth: Login ---
+    public JSONObject login(String email, String password) throws Exception {
+        URL url = new URL("http://localhost:3000/api/users/login");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+
+        JSONObject payload = new JSONObject();
+        payload.put("email", email);
+        payload.put("password", password);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        if (conn.getResponseCode() != 200) {
+            return null;
+        }
+
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null)
+            sb.append(line);
+        return new JSONObject(sb.toString());
+    }
+
+    // --- Driver: Update availability ---
+    public boolean setCabAvailability(String cabId, boolean available) throws Exception {
+        String urlString = "http://localhost:3000/api/cabs/"
+                + URLEncoder.encode(cabId, StandardCharsets.UTF_8.name()) + "/availability";
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
+        conn.setRequestMethod("PATCH");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+        JSONObject payload = new JSONObject();
+        payload.put("isAvailable", available);
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+        }
+        return conn.getResponseCode() == 200;
     }
 }

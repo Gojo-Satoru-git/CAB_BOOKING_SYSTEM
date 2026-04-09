@@ -15,6 +15,10 @@ const cabSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  driverUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   currentLocation: {
     type: {
       type: String,

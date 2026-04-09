@@ -1,8 +1,9 @@
 const User = require("../models/User");
+const Cab = require("../models/Cab");
 
 exports.register = async (req,res) => {
     try{
-        const {name,email,password} = req.body;
+        const {name,email,password,role} = req.body;
         let user = await User.findOne({email});
         if(user){
             return res.status(400).json({message:'User already exits'});
@@ -12,14 +13,44 @@ exports.register = async (req,res) => {
             name,
             email,
             password,
+            role: role && ['USER','DRIVER'].includes(role) ? role : 'USER'
         });
         // HASH BEFORE STORE PASS
         await user.save();
 
+        // Auto-create Cab for DRIVER
+        let createdCab = null;
+        if (user.role === 'DRIVER') {
+            const { driverName, cabModel, licensePlate, latitude, longitude, locationName } = req.body;
+            if (!licensePlate || !cabModel || !driverName) {
+                return res.status(400).json({ message: 'Missing cab details for driver registration' });
+            }
+            const lat = latitude !== undefined ? parseFloat(latitude) : 0;
+            const lon = longitude !== undefined ? parseFloat(longitude) : 0;
+            const cab = new Cab({
+                driverName,
+                cabModel,
+                licensePlate,
+                driverUserId: user._id,
+                currentLocation: {
+                    type: 'Point',
+                    coordinates: [lon, lat]
+                },
+                locationName: locationName || '',
+                isAvailable: true
+            });
+            createdCab = await cab.save();
+        }
+
         res.status(201).json({
             _id:user._id,
             name:user.name,
-            email:user.email
+            email:user.email,
+            role:user.role,
+            cab: createdCab ? {
+                _id: createdCab._id,
+                licensePlate: createdCab.licensePlate
+            } : undefined
         });
     } catch(err){
         console.error(err.message);
@@ -45,7 +76,8 @@ exports.login = async (req,res) => {
             user:{
                 _id:user._id,
                 name:user.name,
-                email:user.email
+                email:user.email,
+                role:user.role
             }
         });
     } catch (err) {

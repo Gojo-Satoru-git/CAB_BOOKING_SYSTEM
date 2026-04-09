@@ -11,6 +11,11 @@
 <VBox xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="MainController" spacing="10" alignment="TOP_CENTER" style="-fx-padding: 10;">
 
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label fx:id="currentUserLabel" text="Welcome"/>
+        <Button text="Logout" onAction="#handleLogout"/>
+    </HBox>
+
     <SplitPane dividerPositions="0.5" VBox.vgrow="ALWAYS">
     
         <AnchorPane>
@@ -22,16 +27,28 @@
                 </HBox>
                 <ListView fx:id="cabListView" VBox.vgrow="ALWAYS"/>
                 
+                <HBox spacing="10">
+                    <Button fx:id="markAvailableBtn" text="Mark Available (Driver)" onAction="#handleMarkAvailable"/>
+                    <Button fx:id="markUnavailableBtn" text="Mark Unavailable (Driver)" onAction="#handleMarkUnavailable"/>
+                </HBox>
+
                 <TextField fx:id="destinationField" promptText="Enter Destination"/>
                 
-                <Button text="Book Selected Cab" onAction="#handleBookCab" maxWidth="Infinity"/>
+                <Button fx:id="bookCabBtn" text="Book Selected Cab" onAction="#handleBookCab" maxWidth="Infinity"/>
             </VBox>
         </AnchorPane>
         
         <AnchorPane>
             <VBox spacing="10" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
-                <Button text="View/Refresh All Bookings" onAction="#handleViewBookings" maxWidth="Infinity"/>
+                <HBox spacing="10">
+                    <Button fx:id="refreshBookingsBtn" text="Refresh All Bookings" onAction="#handleViewBookings"/>
+                    <Button fx:id="myBookingsBtn" text="My Bookings" onAction="#handleViewMyBookings"/>
+                </HBox>
                 <ListView fx:id="bookingListView" VBox.vgrow="ALWAYS"/>
+                <HBox spacing="10">
+                    <Button fx:id="completeBookingBtn" text="Complete" onAction="#handleCompleteBooking"/>
+                    <Button fx:id="cancelBookingBtn" text="Cancel" onAction="#handleCancelBooking"/>
+                </HBox>
             </VBox>
         </AnchorPane>
         

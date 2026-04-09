@@ -10,11 +10,10 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // We will create MainView.fxml next
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/MainView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/LoginView.fxml"));
         Parent root = loader.load();
 
-        primaryStage.setTitle("Cab Booking Client");
+        primaryStage.setTitle("Cab Booking Client - Login");
         primaryStage.setScene(new Scene(root, 600, 400));
         primaryStage.show();
     }

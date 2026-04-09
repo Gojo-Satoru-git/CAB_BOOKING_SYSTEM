@@ -112,7 +112,6 @@ exports.updateCabLocation = async (req, res) => {
     if (!cab) {
       return res.status(404).json({ message: 'Cab not found' });
     }
-
     if (latitude !== undefined && longitude !== undefined) {
       cab.currentLocation = {
         type: 'Point',
@@ -181,6 +180,33 @@ exports.findCabsByName = async (req, res) => {
       res.status(200).json(availableCabs);
     }
 
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// Toggle cab availability
+exports.updateAvailability = async (req, res) => {
+  try {
+    const cabId = req.params.id;
+    const { isAvailable } = req.body;
+
+    if (typeof isAvailable !== 'boolean') {
+      return res.status(400).json({ message: 'isAvailable boolean is required' });
+    }
+
+    const updated = await Cab.findByIdAndUpdate(
+      cabId,
+      { isAvailable },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Cab not found' });
+    }
+
+    res.status(200).json(updated);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

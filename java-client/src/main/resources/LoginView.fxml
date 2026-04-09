@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+
+<VBox xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="LoginController" spacing="12" alignment="CENTER" style="-fx-padding: 20;">
+    <Label text="Cab Booking - Login / Register" style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+
+    <HBox spacing="8" alignment="CENTER">
+        <Label text="Name"/>
+        <TextField fx:id="nameField" promptText="name"/>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER">
+        <Label text="Email"/>
+        <TextField fx:id="emailField" promptText="email"/>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER">
+        <Label text="Password"/>
+        <PasswordField fx:id="passwordField" promptText="password"/>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER">
+        <Label text="Role"/>
+        <ComboBox fx:id="roleCombo" promptText="Select role">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="USER"/>
+                    <String fx:value="DRIVER"/>
+                </FXCollections>
+            </items>
+        </ComboBox>
+    </HBox>
+
+    <!-- Driver cab details -->
+    <TitledPane text="Driver Cab Details" expanded="false">
+        <VBox spacing="8" style="-fx-padding: 10;">
+            <HBox spacing="8" alignment="CENTER">
+                <Label text="Driver Name"/>
+                <TextField fx:id="driverNameField" promptText="driver name"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER">
+                <Label text="Cab Model"/>
+                <TextField fx:id="cabModelField" promptText="model"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER">
+                <Label text="License Plate"/>
+                <TextField fx:id="licensePlateField" promptText="ABC-123"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER">
+                <Label text="Location Name"/>
+                <TextField fx:id="locationNameField" promptText="City/Area"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER">
+                <Label text="Latitude"/>
+                <TextField fx:id="latitudeField" promptText="e.g. 12.9716"/>
+                <Label text="Longitude"/>
+                <TextField fx:id="longitudeField" promptText="e.g. 77.5946"/>
+            </HBox>
+        </VBox>
+    </TitledPane>
+
+    <HBox spacing="12" alignment="CENTER">
+        <Button text="Login" onAction="#handleLogin"/>
+        <Button text="Register" onAction="#handleRegister"/>
+    </HBox>
+
+    <Label fx:id="statusLabel" textFill="gray"/>
+</VBox>
+
